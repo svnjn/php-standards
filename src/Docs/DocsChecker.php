@@ -113,13 +113,14 @@ final readonly class DocsChecker
         $problems = [];
 
         foreach ($snippets as $file => $block) {
-            $result = $this->processes->run([PHP_BINARY, '-l', $file], $this->projectRoot);
+            // Fixed ini settings: where php -l reports errors otherwise depends on the machine's php.ini.
+            $result = $this->processes->run([PHP_BINARY, '-d', 'display_errors=stderr', '-d', 'log_errors=0', '-l', $file], $this->projectRoot);
 
             if ($result->successful()) {
                 continue;
             }
 
-            $message = trim(explode("\n", trim($result->output . "\n" . $result->errorOutput))[0]);
+            $message = $this->syntaxError($result->output . "\n" . $result->errorOutput);
             $line = preg_match('/on line (\d+)/', $message, $matches) === 1 ? (int) $matches[1] : 1;
             $message = (string) preg_replace('/^PHP\s+|\s+in \S+ on line \d+$/', '', $message);
 
@@ -177,6 +178,23 @@ final readonly class DocsChecker
         }
 
         return $problems;
+    }
+
+    /**
+     * The line of php -l's output that describes the error ("Parse error: ..."),
+     * not its "Errors parsing <file>" summary.
+     */
+    private function syntaxError(string $output): string
+    {
+        $lines = array_values(array_filter(array_map(trim(...), explode("\n", $output)), static fn(string $line): bool => $line !== ''));
+
+        foreach ($lines as $line) {
+            if (preg_match('/(Parse|Fatal) error:/i', $line) === 1) {
+                return $line;
+            }
+        }
+
+        return $lines[0] ?? 'Syntax error.';
     }
 
     private function addOpeningTag(string $code): string

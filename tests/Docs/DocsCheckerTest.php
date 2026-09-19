@@ -37,8 +37,8 @@ it('lints each example and analyses them together', function (): void {
     expect($report->passed())->toBeTrue()
         ->and($report->checkedExamples)->toBe(2)
         ->and($f->processes->commandLines())->toBe([
-            PHP_BINARY . ' -l ' . $f->snippet(1),
-            PHP_BINARY . ' -l ' . $f->snippet(2),
+            PHP_BINARY . ' -d display_errors=stderr -d log_errors=0 -l ' . $f->snippet(1),
+            PHP_BINARY . ' -d display_errors=stderr -d log_errors=0 -l ' . $f->snippet(2),
             PHP_BINARY . " {$f->project->path}/vendor/bin/phpstan analyse --no-progress --no-interaction --error-format=json --memory-limit=1G --configuration={$config}",
         ])
         ->and(file_get_contents($f->snippet(1)))->toBe("<?php\n\$a = 1;")
@@ -54,6 +54,28 @@ it('maps syntax errors back to the markdown line', function (): void {
 
     expect($report->problems)->toEqual([
         new DocsProblem('docs/usage.md', 5, 'Parse error:  syntax error, unexpected token ";"'),
+    ]);
+});
+
+it('finds the error when php -l prints its summary first', function (): void {
+    $f = new DocsFixture();
+    $f->project->write('docs/usage.md', "```php\n\$a = 1;\n\$b = ;\n```\n");
+    $f->processes->willReturn(new ProcessResult(255, "Errors parsing {$f->snippet(1)}\n", "\nParse error: syntax error, unexpected token \";\" in {$f->snippet(1)} on line 3\n"));
+
+    $report = $f->checker->check(['docs']);
+
+    expect($report->problems)->toEqual([
+        new DocsProblem('docs/usage.md', 3, 'Parse error: syntax error, unexpected token ";"'),
+    ]);
+});
+
+it('falls back to the first line when php -l names no error', function (): void {
+    $f = new DocsFixture();
+    $f->project->write('docs/usage.md', "```php\n\$a = 1;\n```\n");
+    $f->processes->willReturn(new ProcessResult(255, "Could not open input file\n"));
+
+    expect($f->checker->check(['docs'])->problems)->toEqual([
+        new DocsProblem('docs/usage.md', 2, 'Could not open input file'),
     ]);
 });
 
