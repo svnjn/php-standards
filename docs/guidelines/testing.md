@@ -146,6 +146,8 @@ $paid = InvoiceFactory::make(status: InvoiceStatus::Paid);
 
 The minimums live in the `scripts` of the package's `composer.json`. Raise them freely; lower them only with a reason in the pull request.
 
+Mutation testing runs altered versions of your code for real. Code that deletes files must check the path it was given (for example, that it ends in the folder it owns) before deleting anything, or one altered path can delete the project.
+
 ## Warnings fail tests
 
 `phpunit.xml` fails the run on any warning, notice or deprecation triggered by the package's own code. Deprecations inside vendor code are reported but don't fail the run — you can't fix them.
