@@ -4,6 +4,10 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Fixed
+
+- The docs checker only ever empties its own work directory (`build/docs-check`). Mutation testing could turn it into a delete of the whole project.
+
 ## [1.0.0] - 2026-09-19
 
 ### Added

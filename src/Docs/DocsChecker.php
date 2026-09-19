@@ -9,6 +9,7 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
 use Svnjn\Standards\Exceptions\CommandFailedException;
+use Svnjn\Standards\Exceptions\InvalidArgumentException;
 use Svnjn\Standards\Exceptions\InvalidDataException;
 use Svnjn\Standards\Internal\ArrayReader;
 use Svnjn\Standards\Process\ProcessRunner;
@@ -211,6 +212,12 @@ final readonly class DocsChecker
 
     private function resetDirectory(string $directory): void
     {
+        // This deletes recursively, so it only ever touches the work directory,
+        // whatever path it's given.
+        if (! str_ends_with($directory, '/' . self::WORK_DIRECTORY)) {
+            throw new InvalidArgumentException(sprintf('Refusing to empty "%s": only %s may be emptied.', $directory, self::WORK_DIRECTORY));
+        }
+
         if (! is_dir($directory)) {
             mkdir($directory, 0o755, true);
 
