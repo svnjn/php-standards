@@ -61,6 +61,7 @@ parameters:
 
 services:
     - Svnjn\Standards\PHPStan\ExposedTypeInspector
+    - Svnjn\Standards\PHPStan\UnusedParameterFinder
 
 rules:
     - Svnjn\Standards\PHPStan\Rules\JsonThrowOnErrorRule
@@ -70,3 +71,5 @@ rules:
     - Svnjn\Standards\PHPStan\Rules\NoMagicAccessorsRule
     - Svnjn\Standards\PHPStan\Rules\NoUnpredictablePropertyTypeRule
     - Svnjn\Standards\PHPStan\Rules\NoUnpredictableReturnTypeRule
+    - Svnjn\Standards\PHPStan\Rules\NoUnusedFunctionParameterRule
+    - Svnjn\Standards\PHPStan\Rules\NoUnusedMethodParameterRule

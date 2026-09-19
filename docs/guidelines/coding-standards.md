@@ -25,6 +25,7 @@
 | Modern syntax for the lowest supported PHP, dead code removal, early returns | Rector (fixes it) |
 | Types, nullability, unreachable code, `mixed` leaks | PHPStan max + strict rules |
 | No key-value arrays or `mixed` from public methods/properties | `svnjn.arrayReturn`, `svnjn.arrayProperty`, `svnjn.mixedReturn`, `svnjn.mixedProperty` |
+| Every parameter used, unless a parent class or interface sets the signature | `svnjn.unusedParameter` (`composer fix` removes them from private methods) |
 | No `@`, `global`, `$GLOBALS`, magic accessors | `svnjn.errorSuppression`, `svnjn.globalKeyword`, `svnjn.globalsVariable`, `svnjn.magicMethod` |
 | `json_decode()`/`json_encode()` with `JSON_THROW_ON_ERROR` | `svnjn.jsonThrowOnError` |
 | No `dd`, `dump`, `var_dump`, `die`, `exit`, `eval`, `extract`, `compact`, `Carbon\Carbon` in `src/` | Pest arch presets `php`, `security`, `strict`, `svnjn` |
@@ -40,7 +41,7 @@ It happens, usually at a boundary with a framework. Suppress **that line, that i
 public function rules(): array
 ```
 
-(Methods that implement an interface or override a parent are already exempt from the array rules — you don't need this for `jsonSerialize()`, `toArray()` or framework overrides.)
+(Methods that implement an interface or override a parent are already exempt from the array rules and `svnjn.unusedParameter` — you don't need this for `jsonSerialize()`, `toArray()` or framework overrides. Laravel packages also skip `svnjn.unusedParameter` in `src/Laravel`, `src/Filament`, `src/Dashboard` and `workbench/`, where Laravel calls methods by name; see [Laravel](laravel.md#static-analysis).)
 
 Never add a PHPStan baseline, never lower the level, never ignore by path in a package. If a rule keeps getting in the way, change it in `svnjn/php-standards` for everyone.
 

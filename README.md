@@ -11,7 +11,7 @@ Packages made with the svnjn package starter kit are already wired to it. This p
 | Tool versions | PHPStan, strict and deprecation rules, Pint, Rector, Pest (4 or 5) with type coverage, var-dumper, all at versions that work together |
 | `config/phpstan.neon` | PHPStan at max level, bleeding edge, extra strict options, and the custom rules |
 | `config/phpstan-laravel.neon` | Larastan's stricter checks for Laravel packages |
-| Custom PHPStan rules | No key-value arrays or `mixed` from public methods and properties; no `@`, `global`, `$GLOBALS` or magic accessors; JSON calls must throw |
+| Custom PHPStan rules | No key-value arrays or `mixed` from public methods and properties; no unused parameters; no `@`, `global`, `$GLOBALS` or magic accessors; JSON calls must throw |
 | `config/pint.json` | PER coding style plus strict types, final classes, strict comparisons, immutable dates |
 | `SvnjnRector` | Rector sets for dead code, code quality, type declarations and early returns, up to the package's lowest PHP version — and a guard that rewrites syntax newer than that version |
 | `SvnjnPreset` | A Pest arch preset banning `dd`, `compact`, `exit` and mutable Carbon |

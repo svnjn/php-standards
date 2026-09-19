@@ -17,6 +17,7 @@ Why svnjn packages are built the way they are. Read this before proposing to cha
 |---|---|
 | PHPStan at max, strict rules, bleeding edge, no baselines | Catch mistakes before they run. A baseline hides debt that never gets paid. |
 | No key-value arrays or `mixed` in the public API (`svnjn.*` rules) | Callers can't know which keys an array has. Data objects, `list<T>` and enums are predictable, autocompleted and checked. Interface-dictated methods (`jsonSerialize()`, `toArray()`) are exempt. |
+| No unused parameters (`svnjn.unusedParameter`) | An unused parameter misleads callers and hides dead code. Signatures set by a parent class or interface are exempt, and so are the Laravel-facing folders, where Laravel calls methods by name (`via($notifiable)`). |
 | Rector never makes a method private | Frameworks call some methods by name from their base class, like Livewire's `rules()`; a private one fails at runtime. The `strict` preset already stops new `protected` methods. |
 | Bans enforced by tools, not review | Pest's `php`, `security` and `strict` presets plus the `svnjn` preset; custom PHPStan rules for what arch tests can't see (`@`, `global`, magic accessors, JSON flags); Pint for `DateTime`, which arch tests can't see either. |
 | Rector downgrade guard | PHPStan parses with the PHP it runs on, so PHP 8.4+ syntax passed locally in 8.3 packages. Rector's downgrade set for the lowest version makes `composer lint` catch it. |

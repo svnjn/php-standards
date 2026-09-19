@@ -31,3 +31,15 @@ parameters:
     checkUniqueJobUniqueFor: true
     checkUniqueJobUniqueId: true
     parseModelCastsMethod: true
+
+    ignoreErrors:
+        # Laravel, Livewire and Filament call some methods by name and pass arguments
+        # the method may not need: a notification's via($notifiable), a policy's viewAny($user).
+        -
+            identifier: svnjn.unusedParameter
+            paths:
+                - %currentWorkingDirectory%/src/Dashboard/*
+                - %currentWorkingDirectory%/src/Filament/*
+                - %currentWorkingDirectory%/src/Laravel/*
+                - %currentWorkingDirectory%/workbench/*
+            reportUnmatched: false

@@ -77,3 +77,5 @@ Run any Artisan command against the workbench with `vendor/bin/testbench`, for e
 ## Static analysis
 
 Laravel packages include `vendor/svnjn/php-standards/config/phpstan-laravel.neon` after the base config. It turns on Larastan's stricter checks (model properties against the schema, Octane compatibility, job and auth checks), lets `config/` call `env()`, and reads the schema from the package's, the workbench's and Testbench's migrations.
+
+It also skips `svnjn.unusedParameter` in `src/Laravel`, `src/Filament`, `src/Dashboard` and `workbench/`. Laravel calls methods there by name and passes arguments whether or not they're needed — a notification's `via($notifiable)`, a policy's `viewAny($user)` — so an unused parameter is normal.

@@ -4,6 +4,10 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Added
+
+- `svnjn.unusedParameter`: every method and function parameter must be used, unless a parent class or interface sets the signature. Closures and magic methods are exempt. `config/phpstan-laravel.neon` skips `src/Laravel`, `src/Filament`, `src/Dashboard` and `workbench/`, where Laravel calls methods by name.
+
 ### Fixed
 
 - Rector no longer makes methods private. Frameworks call some methods by name from their base class, like Livewire's `rules()`, and a private one failed at runtime.
