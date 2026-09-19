@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Svnjn\Standards\Tests\Rector;
 
 use Rector\Configuration\RectorConfigBuilder;
+use Svnjn\Standards\Process\SymfonyProcessRunner;
 use Svnjn\Standards\Rector\SvnjnRector;
 use Svnjn\Standards\Tests\Support\TemporaryDirectory;
 
@@ -36,4 +37,15 @@ it('finds nothing without a usable constraint', function (): void {
     expect(SvnjnRector::lowestPhpVersion($directory->path . '/missing.json'))->toBeNull()
         ->and(SvnjnRector::lowestPhpVersion($directory->write('composer.json', '{"require": {}}')))->toBeNull()
         ->and(SvnjnRector::lowestPhpVersion($directory->write('composer.json', '{"require": {"php": "*"}}')))->toBeNull();
+});
+
+it('never makes private a method a framework calls by name', function (): void {
+    // Runs the real Rector on a Livewire-like component whose base class calls rules().
+    $result = (new SymfonyProcessRunner())->run([
+        PHP_BINARY, 'vendor/bin/rector', 'process', 'tests/Fixtures/Rector/FrameworkHook.php',
+        '--config', 'tests/Fixtures/Rector/rector.php', '--dry-run', '--clear-cache', '--no-progress-bar',
+    ], dirname(__DIR__, 2));
+
+    expect($result->output)->not->toContain('private function rules')
+        ->and($result->exitCode)->toBe(0);
 });

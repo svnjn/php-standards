@@ -24,6 +24,10 @@ For screens outside any panel, like Horizon or Telescope.
 - While `npm run dev` runs, the layout loads CSS from the Vite dev server instead: editing a Blade view reloads the page, and new Tailwind classes work instantly. `composer dev` runs the demo app and Vite together.
 - CI fails if `dist/` doesn't match a fresh `npm run build`.
 
+## Livewire hooks
+
+Livewire calls some component methods by name from its own base class: `rules()`, `messages()` and `validationAttributes()`. Declare them `public` — Livewire can't call a `private` one, and the page fails at runtime.
+
 ## Testing
 
 | What | How |

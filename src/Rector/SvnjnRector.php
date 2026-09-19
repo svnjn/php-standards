@@ -7,6 +7,7 @@ namespace Svnjn\Standards\Rector;
 use Rector\CodeQuality\Rector\Identical\FlipTypeControlToUseExclusiveTypeRector;
 use Rector\Config\RectorConfig;
 use Rector\Configuration\RectorConfigBuilder;
+use Rector\Privatization\Rector\ClassMethod\PrivatizeFinalClassMethodRector;
 use Svnjn\Standards\Internal\ArrayReader;
 
 /**
@@ -37,6 +38,9 @@ final class SvnjnRector
             ->withSkip([
                 // `=== null` reads better than `! $x instanceof Foo`.
                 FlipTypeControlToUseExclusiveTypeRector::class,
+                // Frameworks call some methods by name from their own base class,
+                // e.g. Livewire's rules(). Made private, such a method fails at runtime.
+                PrivatizeFinalClassMethodRector::class,
             ]);
 
         // Rewrites syntax newer than the lowest supported PHP (e.g. PHP 8.4's
