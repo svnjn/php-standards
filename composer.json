@@ -1,0 +1,97 @@
+{
+    "name": "svnjn/php-standards",
+    "description": "Shared strict coding standards, static analysis rules and tooling for svnjn PHP packages.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "standards",
+        "phpstan",
+        "pest",
+        "pint",
+        "rector",
+        "strict"
+    ],
+    "homepage": "https://github.com/svnjn/php-standards",
+    "require": {
+        "php": "^8.3",
+        "laravel/pint": "^1.32",
+        "pestphp/pest": "^4.0 || ^5.0",
+        "pestphp/pest-plugin-type-coverage": "^4.0 || ^5.0",
+        "phpstan/extension-installer": "^1.4",
+        "phpstan/phpstan": "^2.2",
+        "phpstan/phpstan-deprecation-rules": "^2.0",
+        "phpstan/phpstan-strict-rules": "^2.0",
+        "rector/rector": "^2.6",
+        "symfony/process": "^7.4 || ^8.0",
+        "symfony/var-dumper": "^7.4 || ^8.0"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Svnjn\\Standards\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Svnjn\\Standards\\Tests\\": "tests/",
+            "Carbon\\": "tests/Fixtures/Stubs/Carbon/"
+        },
+        "classmap": [
+            "tests/PHPStan/Rules/data"
+        ]
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "phpstan/extension-installer": true
+        },
+        "sort-packages": true
+    },
+    "bin": [
+        "bin/svnjn-docs-check",
+        "bin/svnjn-link",
+        "bin/svnjn-unlink"
+    ],
+    "scripts": {
+        "analyse": "phpstan analyse --no-progress --memory-limit=1G",
+        "check": [
+            "@lint",
+            "@analyse",
+            "@docs",
+            "@test",
+            "@test:types",
+            "@test:coverage"
+        ],
+        "docs": "@php bin/svnjn-docs-check README.md",
+        "fix": [
+            "rector process",
+            "pint"
+        ],
+        "lint": [
+            "pint --test",
+            "rector process --dry-run"
+        ],
+        "test": "pest --parallel",
+        "test:coverage": [
+            "@putenv XDEBUG_MODE=coverage",
+            "pest --parallel --coverage --min=90"
+        ],
+        "test:mutate": [
+            "@putenv XDEBUG_MODE=coverage",
+            "pest --mutate --everything --parallel --min=80"
+        ],
+        "test:types": "@php -d memory_limit=1G vendor/bin/pest --type-coverage --min=100"
+    },
+    "scripts-descriptions": {
+        "analyse": "Run PHPStan at max level.",
+        "check": "Run every check CI runs, except mutation testing.",
+        "docs": "Check the PHP examples in the docs.",
+        "fix": "Apply Rector and Pint fixes.",
+        "lint": "Check formatting (Pint) and refactorings (Rector) without changing files.",
+        "test": "Run the test suite.",
+        "test:coverage": "Run tests with code coverage (minimum 90%).",
+        "test:mutate": "Run mutation testing (minimum score 80%).",
+        "test:types": "Check type coverage (minimum 100%)."
+    }
+}

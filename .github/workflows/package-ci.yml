@@ -1,0 +1,248 @@
+# Shared CI for svnjn packages. A package calls it from .github/workflows/ci.yml:
+#
+#   jobs:
+#     ci:
+#       uses: svnjn/php-standards/.github/workflows/package-ci.yml@v1
+#       with:
+#         laravel: true
+#       secrets: inherit
+#
+# It runs the package's own composer scripts: lint, analyse, docs, test,
+# test:types, test:coverage and test:mutate.
+
+name: Package CI
+
+on:
+  workflow_call:
+    inputs:
+      laravel:
+        description: Run the test matrix against each supported Laravel version.
+        type: boolean
+        default: false
+      ui:
+        description: The package commits built frontend assets to dist/.
+        type: boolean
+        default: false
+      browser:
+        description: Run the Pest browser tests (tests/Browser) in a real browser.
+        type: boolean
+        default: false
+      visibility:
+        description: "public: full matrix on every run. private: full matrix on pull requests, tags and manual runs; a quick run otherwise, to save CI minutes."
+        type: string
+        default: private
+      php-versions:
+        description: JSON list of PHP versions, oldest first.
+        type: string
+        default: '["8.3", "8.4", "8.5"]'
+      laravel-versions:
+        description: JSON list of Laravel major versions, oldest first.
+        type: string
+        default: '["12", "13"]'
+      testbench-versions:
+        description: JSON map of Laravel major version to the Testbench constraint that installs it.
+        type: string
+        default: '{"12": "^10.0", "13": "^11.0"}'
+    secrets:
+      COMPOSER_AUTH:
+        description: Composer auth JSON, for packages that depend on private repositories.
+        required: false
+
+permissions:
+  contents: read
+
+env:
+  COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
+  COMPOSER_NO_INTERACTION: 1
+
+jobs:
+  plan:
+    name: Plan
+    runs-on: ubuntu-latest
+    outputs:
+      full: ${{ steps.plan.outputs.full }}
+      matrix: ${{ steps.plan.outputs.matrix }}
+      newest-php: ${{ steps.plan.outputs.newest-php }}
+      newest-laravel: ${{ steps.plan.outputs.newest-laravel }}
+    steps:
+      - name: Choose quick or full run
+        id: plan
+        env:
+          VISIBILITY: ${{ inputs.visibility }}
+          EVENT: ${{ github.event_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          LARAVEL: ${{ inputs.laravel }}
+          PHP_VERSIONS: ${{ inputs.php-versions }}
+          LARAVEL_VERSIONS: ${{ inputs.laravel-versions }}
+        run: |
+          full=false
+          if [ "$VISIBILITY" = "public" ] || [ "$EVENT" = "pull_request" ] || [ "$EVENT" = "workflow_dispatch" ] || [ "$EVENT" = "schedule" ] || [ "$REF_TYPE" = "tag" ]; then
+            full=true
+          fi
+
+          laravel='["none"]'
+          if [ "$LARAVEL" = "true" ]; then
+            laravel="$LARAVEL_VERSIONS"
+          fi
+
+          if [ "$full" = "true" ]; then
+            matrix=$(jq -cn --argjson php "$PHP_VERSIONS" --argjson laravel "$laravel" '{php: $php, laravel: $laravel, dependencies: ["lowest", "highest"]}')
+          else
+            matrix=$(jq -cn --argjson php "$PHP_VERSIONS" --argjson laravel "$laravel" '{php: $php[-1:], laravel: $laravel[-1:], dependencies: ["highest"]}')
+          fi
+
+          {
+            echo "full=$full"
+            echo "matrix=$matrix"
+            echo "newest-php=$(jq -r '.[-1]' <<< "$PHP_VERSIONS")"
+            echo "newest-laravel=$(jq -r '.[-1]' <<< "$laravel")"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "Full run: $full" >> "$GITHUB_STEP_SUMMARY"
+          echo "Matrix: \`$matrix\`" >> "$GITHUB_STEP_SUMMARY"
+
+  quality:
+    name: Lint, analyse, docs, coverage
+    needs: plan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ needs.plan.outputs.newest-php }}
+          coverage: pcov
+          tools: composer:v2
+          # intl for Filament, sockets for Pest's browser plugin.
+          extensions: intl, sockets
+
+      - uses: ramsey/composer-install@v4
+        with:
+          dependency-versions: highest
+
+      # UI packages: Pest's browser plugin needs Playwright's npm package on every run.
+      - name: Install npm packages
+        if: hashFiles('package.json') != ''
+        run: npm ci
+
+      - run: composer lint
+      - run: composer analyse
+      - run: composer docs
+      - run: composer test:types
+      - run: composer test:coverage
+      - run: composer audit
+
+  tests:
+    name: PHP ${{ matrix.php }}${{ matrix.laravel != 'none' && format(' · Laravel {0}', matrix.laravel) || '' }} · ${{ matrix.dependencies }}
+    needs: plan
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: composer:v2
+          # intl for Filament, sockets for Pest's browser plugin.
+          extensions: intl, sockets
+
+      - name: Use Laravel ${{ matrix.laravel }}
+        if: matrix.laravel != 'none'
+        env:
+          TESTBENCH: ${{ fromJSON(inputs.testbench-versions)[matrix.laravel] }}
+        run: composer require --dev "orchestra/testbench:$TESTBENCH" --no-update
+
+      - uses: ramsey/composer-install@v4
+        with:
+          dependency-versions: ${{ matrix.dependencies }}
+
+      # UI packages: Pest's browser plugin needs Playwright's npm package on every run.
+      - name: Install npm packages
+        if: hashFiles('package.json') != ''
+        run: npm ci
+
+      - run: composer test
+
+  mutation:
+    name: Mutation testing
+    needs: plan
+    if: needs.plan.outputs.full == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ needs.plan.outputs.newest-php }}
+          coverage: pcov
+          tools: composer:v2
+          # intl for Filament, sockets for Pest's browser plugin.
+          extensions: intl, sockets
+
+      - uses: ramsey/composer-install@v4
+        with:
+          dependency-versions: highest
+
+      # UI packages: Pest's browser plugin needs Playwright's npm package on every run.
+      - name: Install npm packages
+        if: hashFiles('package.json') != ''
+        run: npm ci
+
+      - run: composer test:mutate
+
+  assets:
+    name: Built assets are up to date
+    needs: plan
+    if: inputs.ui
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Compare dist/ with the committed version
+        run: |
+          if ! git diff --exit-code -- dist; then
+            echo "::error::dist/ is out of date. Run 'npm run build' and commit dist/."
+            exit 1
+          fi
+
+  browser:
+    name: Browser tests
+    needs: plan
+    if: inputs.browser && needs.plan.outputs.full == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ needs.plan.outputs.newest-php }}
+          coverage: none
+          tools: composer:v2
+          # intl for Filament, sockets for Pest's browser plugin.
+          extensions: intl, sockets
+
+      - uses: ramsey/composer-install@v4
+        with:
+          dependency-versions: highest
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      # test:browser builds the demo app (database, published assets) first.
+      - run: composer test:browser

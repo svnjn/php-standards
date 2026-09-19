@@ -1,0 +1,72 @@
+# Base PHPStan configuration for svnjn packages.
+#
+# Include it from the package's phpstan.neon:
+#
+#   includes:
+#       - vendor/svnjn/php-standards/config/phpstan.neon
+#
+# Strict rules, deprecation rules and Larastan are loaded automatically by
+# phpstan/extension-installer when they are installed.
+
+includes:
+    - phar://phpstan.phar/conf/bleedingEdge.neon
+
+parameters:
+    level: max
+    phpVersion:
+        min: 80300
+        max: 80599
+
+    checkBenevolentUnionTypes: true
+    checkDynamicProperties: true
+    checkImplicitMixed: true
+    checkMissingCallableSignature: true
+    checkStrictPrintfPlaceholderTypes: true
+    checkTooWideParameterOutInProtectedAndPublicMethods: true
+    checkTooWideReturnTypesInProtectedAndPublicMethods: true
+    checkTooWideThrowTypesInProtectedAndPublicMethods: true
+    checkUninitializedProperties: true
+    rememberPossiblyImpureFunctionValues: false
+    reportAlwaysTrueInLastCondition: true
+    reportAnyTypeWideningInVarTag: true
+    reportNonIntStringArrayKey: true
+    reportPossiblyNonexistentConstantArrayOffset: true
+    reportPossiblyNonexistentGeneralArrayOffset: true
+    reportUnmatchedIgnoredErrors: true
+    reportWrongPhpDocTypeInVarTag: true
+
+    excludePaths:
+        # Arch tests are declarative calls on Pest's untyped arch API.
+        - %currentWorkingDirectory%/tests/Arch/*
+
+    ignoreErrors:
+        # Tests may shape arrays freely (datasets, providers); the rule protects the public API.
+        -
+            identifiers:
+                - svnjn.arrayReturn
+                - svnjn.arrayProperty
+                - svnjn.mixedReturn
+                - svnjn.mixedProperty
+            path: %currentWorkingDirectory%/tests/*
+            reportUnmatched: false
+        # Tests may index lists directly; a wrong index fails the test loudly anyway.
+        -
+            identifier: offsetAccess.notFound
+            path: %currentWorkingDirectory%/tests/*
+            reportUnmatched: false
+        # Pest marks its expectation API @internal; using it is how Pest is used.
+        -
+            message: '#internal (class|interface|trait) Pest\\#'
+            reportUnmatched: false
+
+services:
+    - Svnjn\Standards\PHPStan\ExposedTypeInspector
+
+rules:
+    - Svnjn\Standards\PHPStan\Rules\JsonThrowOnErrorRule
+    - Svnjn\Standards\PHPStan\Rules\NoErrorSuppressionRule
+    - Svnjn\Standards\PHPStan\Rules\NoGlobalKeywordRule
+    - Svnjn\Standards\PHPStan\Rules\NoGlobalsVariableRule
+    - Svnjn\Standards\PHPStan\Rules\NoMagicAccessorsRule
+    - Svnjn\Standards\PHPStan\Rules\NoUnpredictablePropertyTypeRule
+    - Svnjn\Standards\PHPStan\Rules\NoUnpredictableReturnTypeRule

@@ -1,0 +1,16 @@
+* text=auto eol=lf
+
+# Keep development files out of the package users install.
+# docs/guidelines stays: packages point AI tools at vendor/svnjn/php-standards/docs/guidelines.
+/.github            export-ignore
+/tests              export-ignore
+/.editorconfig      export-ignore
+/.gitattributes     export-ignore
+/.gitignore         export-ignore
+/CONTRIBUTING.md    export-ignore
+/phpstan.neon       export-ignore
+/phpunit.xml        export-ignore
+/pint.json          export-ignore
+/rector.php         export-ignore
+/AGENTS.md          export-ignore
+/CLAUDE.md          export-ignore

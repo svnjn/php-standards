@@ -1,0 +1,10 @@
+includes:
+    - config/phpstan.neon
+
+parameters:
+    paths:
+        - src
+        - tests
+    excludePaths:
+        - tests/*/data/*
+        - tests/Fixtures/*

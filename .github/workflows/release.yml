@@ -1,0 +1,12 @@
+name: Release
+
+on:
+  push:
+    # Full versions only (v1.4.0, v2.0.0-beta.1), not moving tags like v1.
+    tags: ['v[0-9]+.[0-9]+.[0-9]+*']
+
+jobs:
+  release:
+    uses: ./.github/workflows/package-release.yml
+    permissions:
+      contents: write

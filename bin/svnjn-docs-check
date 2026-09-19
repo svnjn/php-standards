@@ -1,0 +1,18 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use Svnjn\Standards\Console\StreamOutput;
+use Svnjn\Standards\Docs\DocsCheckCommand;
+use Svnjn\Standards\Docs\DocsChecker;
+use Svnjn\Standards\Process\SymfonyProcessRunner;
+
+require $_composer_autoload_path ?? __DIR__ . '/../vendor/autoload.php';
+
+$command = new DocsCheckCommand(
+    new DocsChecker(new SymfonyProcessRunner(), (string) getcwd()),
+    new StreamOutput(),
+);
+
+exit($command->run(array_values(array_slice($argv, 1))));

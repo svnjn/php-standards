@@ -1,0 +1,49 @@
+# Shared release workflow for svnjn packages. A package calls it from
+# .github/workflows/release.yml when a v* tag is pushed:
+#
+#   on:
+#     push:
+#       tags: ['v[0-9]+.[0-9]+.[0-9]+*']
+#   jobs:
+#     release:
+#       uses: svnjn/php-standards/.github/workflows/package-release.yml@v1
+#       permissions:
+#         contents: write
+#
+# It publishes a GitHub release whose notes are that version's section of CHANGELOG.md.
+
+name: Package release
+
+on:
+  workflow_call:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Publish GitHub release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Extract release notes from CHANGELOG.md
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version="${TAG#v}"
+          awk -v version="$version" '
+            index($0, "## [" version "]") == 1 { found = 1; next }
+            found && /^## \[/ { exit }
+            found { print }
+          ' CHANGELOG.md > release-notes.md
+
+          if [ -z "$(tr -d '[:space:]' < release-notes.md)" ]; then
+            echo "::error::CHANGELOG.md has no section for $version. Add '## [$version] - YYYY-MM-DD' before tagging."
+            exit 1
+          fi
+
+      - uses: softprops/action-gh-release@v3
+        with:
+          body_path: release-notes.md
+          prerelease: ${{ startsWith(github.ref_name, 'v0.') || contains(github.ref_name, '-') }}

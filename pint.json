@@ -1,0 +1,7 @@
+{
+    "extend": "config/pint.json",
+    "notPath": [
+        "tests/Fixtures",
+        "tests/PHPStan/Rules/data"
+    ]
+}

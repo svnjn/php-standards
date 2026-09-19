@@ -1,0 +1,67 @@
+{
+    "preset": "per",
+    "rules": {
+        "blank_line_before_statement": {
+            "statements": [
+                "return",
+                "throw",
+                "try"
+            ]
+        },
+        "date_time_immutable": true,
+        "declare_strict_types": true,
+        "final_class": true,
+        "fully_qualified_strict_types": {
+            "import_symbols": true
+        },
+        "global_namespace_import": {
+            "import_classes": true,
+            "import_constants": false,
+            "import_functions": false
+        },
+        "method_chaining_indentation": true,
+        "modernize_types_casting": true,
+        "no_empty_phpdoc": true,
+        "no_extra_blank_lines": {
+            "tokens": [
+                "extra",
+                "throw",
+                "use",
+                "curly_brace_block",
+                "square_brace_block",
+                "parenthesis_brace_block"
+            ]
+        },
+        "no_superfluous_phpdoc_tags": {
+            "allow_mixed": true,
+            "remove_inheritdoc": true
+        },
+        "no_unused_imports": true,
+        "not_operator_with_successor_space": true,
+        "ordered_imports": {
+            "sort_algorithm": "alpha",
+            "imports_order": [
+                "class",
+                "function",
+                "const"
+            ]
+        },
+        "ordered_traits": true,
+        "phpdoc_trim": true,
+        "protected_to_private": true,
+        "self_accessor": true,
+        "single_quote": true,
+        "strict_comparison": true,
+        "strict_param": true,
+        "trailing_comma_in_multiline": {
+            "elements": [
+                "arguments",
+                "arrays",
+                "match",
+                "parameters"
+            ]
+        },
+        "use_arrow_functions": true,
+        "void_return": true
+    }
+}

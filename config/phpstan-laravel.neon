@@ -1,0 +1,33 @@
+# Stricter Larastan settings for Laravel packages. Include it after the base config:
+#
+#   includes:
+#       - vendor/svnjn/php-standards/config/phpstan.neon
+#       - vendor/svnjn/php-standards/config/phpstan-laravel.neon
+#
+# Larastan itself is loaded by phpstan/extension-installer once the package requires larastan/larastan.
+
+parameters:
+    # The package's own config/ files may call env().
+    configDirectories:
+        - %currentWorkingDirectory%/config
+
+    # Model property checks read the schema from the package's migrations,
+    # the workbench's, and Testbench's defaults (users, cache, jobs).
+    databaseMigrationsPath:
+        - %currentWorkingDirectory%/database/migrations
+        - %currentWorkingDirectory%/workbench/database/migrations
+        - %currentWorkingDirectory%/vendor/orchestra/testbench-core/laravel/migrations
+
+    checkAuthCallsWhenInRequestScope: true
+    checkBatchableJobChecksCancellation: true
+    checkBatchedJobIsBatchable: true
+    checkConfigTypes: true
+    checkDispatchInTransactionAfterCommit: true
+    checkJobSerializesModels: true
+    checkModelAppends: true
+    checkModelMethodVisibility: true
+    checkModelProperties: true
+    checkOctaneCompatibility: true
+    checkUniqueJobUniqueFor: true
+    checkUniqueJobUniqueId: true
+    parseModelCastsMethod: true
