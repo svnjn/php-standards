@@ -22,5 +22,10 @@ Checklist for turning a private package into an open-source one.
 ## Publish
 
 - [ ] Make the GitHub repository public.
-- [ ] Submit it at [packagist.org/packages/submit](https://packagist.org/packages/submit) and enable the GitHub hook so tags publish automatically.
+- [ ] Submit it at [packagist.org/packages/submit](https://packagist.org/packages/submit).
+- [ ] Make Packagist update automatically. If the package page says it isn't auto-updated, Packagist couldn't add its webhook (the `svnjn` organization hasn't granted it access). Add it yourself under the repository's **Settings → Webhooks → Add webhook**:
+  - Payload URL: `https://packagist.org/api/github?username=<your Packagist username>`
+  - Content type: `application/json`
+  - Secret: your Packagist API token (from your Packagist profile)
+  - Events: just the push event
 - [ ] Apps can drop the `repositories` entry for the package.
