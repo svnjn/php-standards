@@ -4,6 +4,8 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-09-19
+
 ### Added
 
 - `svnjn.unusedParameter`: every method and function parameter must be used, unless a parent class or interface sets the signature. Closures and magic methods are exempt. `config/phpstan-laravel.neon` skips `src/Laravel`, `src/Filament`, `src/Dashboard` and `workbench/`, where Laravel calls methods by name.
