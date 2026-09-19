@@ -91,8 +91,7 @@ final readonly class DocsChecker
      */
     private function writeSnippets(array $blocks): array
     {
-        $directory = $this->projectRoot . '/' . self::WORK_DIRECTORY;
-        $this->resetDirectory($directory);
+        $directory = $this->emptyWorkDirectory();
 
         $snippets = [];
 
@@ -137,7 +136,7 @@ final readonly class DocsChecker
      */
     private function analyse(array $snippets): array
     {
-        $directory = $this->projectRoot . '/' . self::WORK_DIRECTORY;
+        $directory = $this->workDirectory();
         $config = $directory . '/phpstan.neon';
 
         file_put_contents($config, sprintf(
@@ -210,18 +209,29 @@ final readonly class DocsChecker
         return $block->line + max(0, $snippetLine - 1 - $addedLines);
     }
 
-    private function resetDirectory(string $directory): void
+    /**
+     * The only directory the checker writes to or deletes from. Mutation testing
+     * runs altered copies of this class for real, so any other path throws.
+     */
+    private function workDirectory(): string
     {
-        // This deletes recursively, so it only ever touches the work directory,
-        // whatever path it's given.
+        $directory = $this->projectRoot . '/' . self::WORK_DIRECTORY;
+
         if (! str_ends_with($directory, '/' . self::WORK_DIRECTORY)) {
-            throw new InvalidArgumentException(sprintf('Refusing to empty "%s": only %s may be emptied.', $directory, self::WORK_DIRECTORY));
+            throw new InvalidArgumentException(sprintf('Refusing to use "%s": the docs checker only writes to %s.', $directory, self::WORK_DIRECTORY));
         }
+
+        return $directory;
+    }
+
+    private function emptyWorkDirectory(): string
+    {
+        $directory = $this->workDirectory();
 
         if (! is_dir($directory)) {
             mkdir($directory, 0o755, true);
 
-            return;
+            return $directory;
         }
 
         $contents = new RecursiveIteratorIterator(
@@ -234,5 +244,7 @@ final readonly class DocsChecker
                 $item->isDir() && ! $item->isLink() ? rmdir($item->getPathname()) : unlink($item->getPathname());
             }
         }
+
+        return $directory;
     }
 }

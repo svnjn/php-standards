@@ -146,7 +146,7 @@ $paid = InvoiceFactory::make(status: InvoiceStatus::Paid);
 
 The minimums live in the `scripts` of the package's `composer.json`. Raise them freely; lower them only with a reason in the pull request.
 
-Mutation testing runs altered versions of your code for real. Code that deletes files must check the path it was given (for example, that it ends in the folder it owns) before deleting anything, or one altered path can delete the project.
+Mutation testing runs altered versions of your code for real. Code that writes or deletes files must check the path first (for example, that it ends in the folder it owns), or one altered path can overwrite or delete project files.
 
 ## Warnings fail tests
 

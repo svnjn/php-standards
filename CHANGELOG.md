@@ -11,7 +11,7 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 ### Fixed
 
 - Rector no longer makes methods private. Frameworks call some methods by name from their base class, like Livewire's `rules()`, and a private one failed at runtime.
-- The docs checker only ever empties its own work directory (`build/docs-check`). Mutation testing could turn it into a delete of the whole project.
+- The docs checker only ever writes to and empties its own work directory (`build/docs-check`), and `svnjn-link` only its `.svnjn` folder. Mutation testing runs altered code for real, and an altered path could delete the project or overwrite its `phpstan.neon`.
 
 ## [1.0.0] - 2026-09-19
 

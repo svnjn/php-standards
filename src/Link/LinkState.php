@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Svnjn\Standards\Link;
 
+use Svnjn\Standards\Exceptions\InvalidArgumentException;
 use Svnjn\Standards\Internal\ArrayReader;
 
 /**
@@ -22,7 +23,7 @@ final readonly class LinkState
 
     public static function load(string $packagePath): self
     {
-        $file = $packagePath . '/' . self::FILE;
+        $file = self::file($packagePath);
 
         if (! is_file($file)) {
             return new self();
@@ -60,7 +61,7 @@ final readonly class LinkState
 
     public function save(string $packagePath): void
     {
-        $file = $packagePath . '/' . self::FILE;
+        $file = self::file($packagePath);
 
         if ($this->apps === []) {
             if (is_file($file)) {
@@ -82,5 +83,20 @@ final readonly class LinkState
             ['apps' => $this->apps],
             JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR,
         ) . "\n");
+    }
+
+    /**
+     * The state file inside the package. Mutation testing runs altered copies
+     * of this class for real, so a path outside the package throws.
+     */
+    private static function file(string $packagePath): string
+    {
+        $file = $packagePath . '/' . self::FILE;
+
+        if (! str_starts_with($file, $packagePath . '/')) {
+            throw new InvalidArgumentException(sprintf('Refusing to use "%s": link state lives in %s inside the package.', $file, self::FILE));
+        }
+
+        return $file;
     }
 }
